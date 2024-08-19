@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movie Bill Information</title>
+</head>
+<body>
+    <h1>Movie Bill Information</h1>
+    <p><strong>Name of Movie/Series:</strong> {{ name }}</p>
+    <p><strong>Type:</strong> {{ content_type }}</p>
+    <p><strong>Episodes:</strong> {{ episodes }}</p>
+    <p><strong>Episode Runtime:</strong> {{ episode_runtime }} minutes</p>
+    <p><strong>Release Date:</strong> {{ release_date }}</p>
+    <p><strong>IMDb Rating:</strong> {{ imdb_rating }}</p>
+    <p><strong>Total Charges:</strong> ₹{{ total_charges }}</p>
+    <p><strong>SMST (Sales and Marketing Service Tax):</strong> ₹{{ smst }}</p>
+    <p><strong>Total (Including Tax):</strong> ₹{{ total_with_tax }}</p>
+    
+    <form action="/download_pdf2" method="POST">
+        <input type="hidden" name="name" value="{{ name }}">
+        <input type="hidden" name="content_type" value="{{ content_type }}">
+        <input type="hidden" name="episodes" value="{{ episodes }}">
+        <input type="hidden" name="episode_runtime" value="{{ episode_runtime }}">
+        <input type="hidden" name="release_date" value="{{ release_date }}">
+        <input type="hidden" name="imdb_rating" value="{{ imdb_rating }}">
+        <input type="submit" value="Download PDF">
+    </form>
+</body>
+</html>
