@@ -130,11 +130,9 @@ def download_pdf2():
         release_date = request.form['release_date']
         imdb_rating = float(request.form['imdb_rating'])
 
-        # String for additional information
-        inf = ""
-
-        # Calculate charges
+        # Calculate charges (unchanged)
         charges = 100
+        inf = ""
         if content_type == 'movie':
             if episode_runtime > 120:
                 extra_charge = math.ceil((episode_runtime - 120) / 20) * 50
@@ -163,7 +161,7 @@ def download_pdf2():
 
         # Calculate taxes and total charges
         convenience_charge = 50
-        release_date = datetime.strptime(release_date, "%d-%m-%Y")
+        release_date = datetime.strptime(release_date, "%Y-%m-%d")
         days_difference = (datetime.now() - release_date).days
         additional_charge = 200 if days_difference <= 45 else 0
         total_charges = charges + convenience_charge + additional_charge
@@ -197,23 +195,12 @@ def download_pdf2():
         c.save()
         pdf.seek(0)
 
-        # Save the PDF and record the transaction
-        save_dir = os.path.join(os.path.expanduser('~'), "movies_and_series_data")
-        os.makedirs(save_dir, exist_ok=True)
-        save_path = os.path.join(save_dir, f"{name}(inv).pdf")
-        with open(save_path, 'wb') as file:
-            file.write(pdf.read())
-
-        with open(os.path.join(save_dir, "record.txt"), "a") as f:
-            f.write(f"\n{name},{content_type},{episodes},{episode_runtime},{release_date.strftime('%d-%m-%Y')},{total_charges},{smst},{total_with_tax}")
-
         # Return PDF to user
         pdf.seek(0)
         return send_file(pdf, as_attachment=True, download_name=f"{name}(inv).pdf")
 
     except Exception as e:
         PrintException()
-        return str(e)
-
+        return Response(f"<h1 style='color:red'>An error occurred: {e}</h1>", mimetype="text/html")
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=2600)
