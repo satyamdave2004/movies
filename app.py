@@ -2,7 +2,10 @@ from flask import Flask, request, render_template, Response, send_file
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from datetime import datetime
-import math, os, requests, linecache, sys
+import math
+import requests
+import sys
+import linecache
 
 app = Flask(__name__)
 
@@ -110,7 +113,7 @@ def generate_bill():
     total_with_tax = total_charges + smst
 
     # Log the transaction
-    log_file_path = os.path.join(os.path.expanduser('~'), "movies_and_series_data", "display_record.txt")
+    log_file_path = "/tmp/display_record.txt"
     with open(log_file_path, "a") as f:
         f.write(f"\n{name},{content_type},{episodes},{episode_runtime},{release_date.strftime('%d-%m-%Y')},{total_charges},{smst},{total_with_tax}")
 
@@ -130,9 +133,11 @@ def download_pdf2():
         release_date = request.form['release_date']
         imdb_rating = float(request.form['imdb_rating'])
 
-        # Calculate charges (unchanged)
-        charges = 100
+        # String for additional information
         inf = ""
+
+        # Calculate charges
+        charges = 100
         if content_type == 'movie':
             if episode_runtime > 120:
                 extra_charge = math.ceil((episode_runtime - 120) / 20) * 50
@@ -161,7 +166,7 @@ def download_pdf2():
 
         # Calculate taxes and total charges
         convenience_charge = 50
-        release_date = datetime.strptime(release_date, "%Y-%m-%d")
+        release_date = datetime.strptime(release_date, "%d-%m-%d")
         days_difference = (datetime.now() - release_date).days
         additional_charge = 200 if days_difference <= 45 else 0
         total_charges = charges + convenience_charge + additional_charge
@@ -195,6 +200,16 @@ def download_pdf2():
         c.save()
         pdf.seek(0)
 
+        # Save the PDF and record the transaction
+        save_path = f"/tmp/{name}(inv).pdf"
+        with open(save_path, 'wb') as file:
+            file.write(pdf.read())
+
+        # Log the transaction
+        log_file_path = "/tmp/record.txt"
+        with open(log_file_path, "a") as f:
+            f.write(f"\n{name},{content_type},{episodes},{episode_runtime},{release_date.strftime('%d-%m-%Y')},{total_charges},{smst},{total_with_tax}")
+
         # Return PDF to user
         pdf.seek(0)
         return send_file(pdf, as_attachment=True, download_name=f"{name}(inv).pdf")
@@ -202,5 +217,6 @@ def download_pdf2():
     except Exception as e:
         PrintException()
         return Response(f"<h1 style='color:red'>An error occurred: {e}</h1>", mimetype="text/html")
+
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=2600)
